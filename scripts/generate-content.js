@@ -86,13 +86,15 @@ Schrijf een Pinterest pin beschrijving (max 200 woorden):
 Schrijf ALLEEN de beschrijving, niets anders.`,
 };
 
-function getTopicsForWeek() {
-  const weekNumber = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+// 5 posts per maand = 20 platform-posts (5 × 4 platforms) = gratis limiet vol
+function getTopicsForMonth() {
+  const monthNumber = new Date().getMonth() + new Date().getFullYear() * 12;
   return [
-    TOPICS[weekNumber % TOPICS.length],
-    TOPICS[(weekNumber + 2) % TOPICS.length],
-    TOPICS[(weekNumber + 4) % TOPICS.length],
-    TOPICS[(weekNumber + 1) % TOPICS.length], // Zondag extra
+    TOPICS[monthNumber % TOPICS.length],
+    TOPICS[(monthNumber + 1) % TOPICS.length],
+    TOPICS[(monthNumber + 2) % TOPICS.length],
+    TOPICS[(monthNumber + 3) % TOPICS.length],
+    TOPICS[(monthNumber + 4) % TOPICS.length],
   ];
 }
 
@@ -128,15 +130,16 @@ async function generateImageTitle(topic) {
   return message.content[0].text.trim().replace(/["']/g, "");
 }
 
-async function generateWeeklyContent() {
+async function generateMonthlyContent() {
   if (!fs.existsSync(POSTS_DIR)) fs.mkdirSync(POSTS_DIR, { recursive: true });
 
-  const topics = getTopicsForWeek();
-  const days = ["maandag", "woensdag", "vrijdag", "zondag"];
-  const times = ["08:00", "12:00", "17:00", "10:00"];
+  // 5 posts verspreid over de maand: wo1, vr1, ma2, wo2, vr3
+  const topics = getTopicsForMonth();
+  const days = ["woensdag week 1", "vrijdag week 1", "maandag week 2", "woensdag week 2", "vrijdag week 3"];
+  const times = ["12:00", "17:00", "08:00", "12:00", "17:00"];
   const results = [];
 
-  console.log(`Genereren van content voor ${topics.length} posts...\n`);
+  console.log(`Genereren van 5 posts voor deze maand (= 20 Ayrshare credits)...\n`);
 
   for (let i = 0; i < topics.length; i++) {
     const topic = topics[i];
@@ -179,10 +182,12 @@ async function generateWeeklyContent() {
   }
 
   // Opslaan als JSON
-  const dateStr = new Date().toISOString().split("T")[0];
-  const outPath = path.join(POSTS_DIR, `week-${dateStr}.json`);
+  const now = new Date();
+  const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const outPath = path.join(POSTS_DIR, `maand-${monthStr}.json`);
   fs.writeFileSync(outPath, JSON.stringify(results, null, 2), "utf-8");
   console.log(`Posts opgeslagen: ${outPath}`);
+  console.log(`\n✓ 5 posts × 4 platforms = 20 Ayrshare credits (gratis limiet vol)`);
 
   return outPath;
 }
@@ -193,9 +198,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.error("Fout: ANTHROPIC_API_KEY is niet ingesteld.");
     process.exit(1);
   }
-  generateWeeklyContent()
+  generateMonthlyContent()
     .then((file) => console.log(`\nKlaar! Output: ${file}`))
     .catch((err) => { console.error(err.message); process.exit(1); });
 }
 
-export { generateWeeklyContent };
+export { generateMonthlyContent };

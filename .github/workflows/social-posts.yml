@@ -2,7 +2,7 @@ name: Sociale Media Posts Automatisering
 
 on:
   schedule:
-    - cron: "0 19 * * 0"  # Elke zondag om 19:00 UTC
+    - cron: "0 19 1 * *"  # Elke 1e van de maand om 19:00 UTC (plant 5 posts voor hele maand)
   workflow_dispatch:       # Handmatig triggeren via GitHub UI
 
 jobs:
@@ -29,7 +29,7 @@ jobs:
             libcairo2-dev libpango1.0-dev libjpeg-dev \
             libgif-dev librsvg2-dev
 
-      - name: Content + afbeeldingen genereren
+      - name: Content + afbeeldingen genereren (5 posts = 20 Ayrshare credits)
         run: node scripts/generate-content.js
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

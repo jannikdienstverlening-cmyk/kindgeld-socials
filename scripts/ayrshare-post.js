@@ -11,24 +11,31 @@ const POSTS_DIR = path.join(ROOT, "posts");
 const AYRSHARE_API = "https://app.ayrshare.com/api";
 const PLATFORMS = ["instagram", "facebook", "tiktok", "pinterest"];
 
-// Postschema: ma 08:00, wo 12:00, vr 17:00, zo 10:00
-const SCHEDULE = [
-  { day: "maandag",  dayOfWeek: 1, hour: 8,  minute: 0 },
-  { day: "woensdag", dayOfWeek: 3, hour: 12, minute: 0 },
-  { day: "vrijdag",  dayOfWeek: 5, hour: 17, minute: 0 },
-  { day: "zondag",   dayOfWeek: 0, hour: 10, minute: 0 },
+// 5 posts verspreid over de maand = 20 Ayrshare credits (gratis limiet)
+// Elke post gaat naar 4 platforms: 5 × 4 = 20
+// Schema: wo wk1 12:00 | vr wk1 17:00 | ma wk2 08:00 | wo wk2 12:00 | vr wk3 17:00
+const MONTHLY_SCHEDULE = [
+  { weekOffset: 0, dayOfWeek: 3, hour: 12, minute: 0 },  // woensdag week 1
+  { weekOffset: 0, dayOfWeek: 5, hour: 17, minute: 0 },  // vrijdag week 1
+  { weekOffset: 1, dayOfWeek: 1, hour: 8,  minute: 0 },  // maandag week 2
+  { weekOffset: 1, dayOfWeek: 3, hour: 12, minute: 0 },  // woensdag week 2
+  { weekOffset: 2, dayOfWeek: 5, hour: 17, minute: 0 },  // vrijdag week 3
 ];
 
-function getNextOccurrence(dayOfWeek, hour, minute) {
+function getScheduleDate(weekOffset, dayOfWeek, hour, minute) {
+  // Start vanaf de eerstvolgende maandag na vandaag
   const now = new Date();
-  const result = new Date(now);
-  result.setHours(hour, minute, 0, 0);
+  const monday = new Date(now);
+  const daysToMonday = (8 - now.getDay()) % 7 || 7;
+  monday.setDate(now.getDate() + daysToMonday);
+  monday.setHours(0, 0, 0, 0);
 
-  let daysUntil = dayOfWeek - now.getDay();
-  if (daysUntil < 0 || (daysUntil === 0 && result <= now)) daysUntil += 7;
-  result.setDate(result.getDate() + daysUntil);
+  // Bereken doel: maandag + weekOffset weken + offset naar gewenste dag
+  const target = new Date(monday);
+  target.setDate(monday.getDate() + weekOffset * 7 + (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  target.setHours(hour, minute, 0, 0);
 
-  return result.toISOString();
+  return target.toISOString();
 }
 
 async function uploadMedia(imagePath) {
@@ -113,13 +120,14 @@ async function scheduleAllPosts() {
   const posts = JSON.parse(fs.readFileSync(postsFile, "utf-8"));
 
   console.log(`${posts.length} posts gevonden. Inplannen via Ayrshare...\n`);
+  console.log(`💡 Gratis limiet: 5 posts × 4 platforms = 20 credits/maand\n`);
 
   for (let i = 0; i < posts.length; i++) {
     const post = posts[i];
-    const schedule = SCHEDULE[i];
+    const schedule = MONTHLY_SCHEDULE[i];
     if (!schedule) continue;
 
-    const scheduleDate = getNextOccurrence(schedule.dayOfWeek, schedule.hour, schedule.minute);
+    const scheduleDate = getScheduleDate(schedule.weekOffset, schedule.dayOfWeek, schedule.hour, schedule.minute);
     const dateLabel = new Date(scheduleDate).toLocaleString("nl-NL", {
       weekday: "long", day: "numeric", month: "long",
       hour: "2-digit", minute: "2-digit",
