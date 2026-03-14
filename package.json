@@ -4,11 +4,16 @@
   "description": "Geautomatiseerde sociale media content voor kindgeld.nl",
   "type": "module",
   "scripts": {
-    "generate": "node scripts/generate-posts.js",
-    "schedule": "node scripts/schedule-posts.js",
-    "run-all": "node scripts/generate-posts.js && node scripts/schedule-posts.js"
+    "generate": "node scripts/generate-content.js",
+    "images": "node scripts/generate-images.js",
+    "schedule": "node scripts/buffer-post.js",
+    "run-all": "node scripts/generate-content.js && node scripts/buffer-post.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0"
+    "@anthropic-ai/sdk": "^0.39.0",
+    "canvas": "^3.2.1",
+    "dotenv": "^17.3.1",
+    "node-fetch": "^3.3.2",
+    "sharp": "^0.34.5"
   }
 }

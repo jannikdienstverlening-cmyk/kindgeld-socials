@@ -1,0 +1,54 @@
+name: Sociale Media Posts Automatisering
+
+on:
+  schedule:
+    - cron: "0 19 * * 0"  # Elke zondag om 19:00 UTC
+  workflow_dispatch:       # Handmatig triggeren via GitHub UI
+
+jobs:
+  generate-and-schedule:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Node.js instellen
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Dependencies installeren
+        run: npm ci
+
+      - name: Canvas dependencies installeren (Ubuntu)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            libcairo2-dev libpango1.0-dev libjpeg-dev \
+            libgif-dev librsvg2-dev
+
+      - name: Content + afbeeldingen genereren
+        run: node scripts/generate-content.js
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Posts inplannen via Buffer
+        run: node scripts/buffer-post.js
+        env:
+          BUFFER_ACCESS_TOKEN: ${{ secrets.BUFFER_ACCESS_TOKEN }}
+          BUFFER_INSTAGRAM_ID: ${{ secrets.BUFFER_INSTAGRAM_ID }}
+          BUFFER_FACEBOOK_ID: ${{ secrets.BUFFER_FACEBOOK_ID }}
+          BUFFER_TIKTOK_ID: ${{ secrets.BUFFER_TIKTOK_ID }}
+          BUFFER_PINTEREST_ID: ${{ secrets.BUFFER_PINTEREST_ID }}
+
+      - name: Gegenereerde posts en afbeeldingen committen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add posts/ images/generated/
+          git diff --staged --quiet || git commit -m "chore: automatisch gegenereerde posts $(date +%Y-%m-%d)"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
