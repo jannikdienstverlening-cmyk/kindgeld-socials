@@ -13,142 +13,155 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const TOPICS = [
   {
     type: "tip",
-    title: "Tip voor ouders over zakgeld",
-    prompt: "Geef een concrete, praktische tip voor ouders over zakgeld geven aan kinderen. Denk aan leeftijdsgeschikte bedragen, regelmaat of hoe je kinderen leert omgaan met geld.",
+    title: "Zakgeld tip voor ouders",
+    prompt: "Geef een concrete, praktische tip voor ouders over zakgeld geven aan kinderen. Denk aan leeftijdsgeschikte bedragen, regelmaat of hoe je kinderen leert budgetteren.",
+    imageSubtitle: "Praktische tip van kindgeld.nl",
   },
   {
     type: "statistiek",
-    title: "Statistiek over kinderen en geld",
-    prompt: "Noem een interessante statistiek of feit over kinderen en spaargeld of zakgeld in Nederland (bijv. van Nibud). Maak het concreet en herkenbaar voor ouders.",
+    title: "Statistiek: kinderen en geld",
+    prompt: "Noem één schokkende of verrassende statistiek over kinderen en spaargeld/zakgeld in Nederland. Maak het concreet met een percentage of getal (bijv. '69% van kinderen...'). Bron: Nibud of vergelijkbaar.",
+    imageSubtitle: "Bron: Nibud 2024",
   },
   {
     type: "feature",
-    title: "Feature uitleg kindgeld.nl",
-    prompt: "Leg één specifieke functionaliteit van de kindgeld.nl app uit: digitaal zakgeld beheren, spaardoelen instellen, beloningssystemen of inzicht in uitgaven voor kinderen.",
+    title: "Ontdek kindgeld.nl",
+    prompt: "Leg één handige functionaliteit van de kindgeld.nl app enthousiast uit: digitaal zakgeld beheren, spaardoelen instellen, beloningssystemen of uitgavenoverzicht voor kinderen.",
+    imageSubtitle: "Probeer gratis op kindgeld.nl",
   },
   {
     type: "quote",
-    title: "Inspirerende quote over geld en kinderen",
-    prompt: "Verzin een inspirerende, warme quote over financiële opvoeding of geld leren aan kinderen. Maak het persoonlijk en toegankelijk.",
+    title: "Inspirerende quote",
+    prompt: "Verzin een korte, krachtige quote (1-2 zinnen) over financiële opvoeding of kinderen leren sparen. Schrijf de quote zonder aanhalingstekens. Maak het warm, wijze en herkenbaar voor ouders.",
+    imageSubtitle: "kindgeld.nl",
   },
   {
     type: "tip",
-    title: "Spaardoel inspiratie",
-    prompt: "Geef inspiratie voor een spaardoel dat kinderen kunnen stellen via de kindgeld.nl app. Denk aan een speelgoed, uitje of cadeautje en hoe je dit koppelt aan spaargedrag.",
+    title: "Spaardoel voor je kind",
+    prompt: "Geef inspiratie voor een leuk, concreet spaardoel dat kinderen kunnen stellen in de kindgeld.nl app. Koppel het aan iets tastbaars (speelgoed, uitje) en leg uit hoe je als ouder dit stimuleert.",
+    imageSubtitle: "Spaardoelen via kindgeld.nl",
   },
   {
     type: "tip",
-    title: "Beloningentip voor ouders",
-    prompt: "Geef een tip over hoe ouders een beloningssysteem kunnen opzetten voor hun kinderen via kindgeld.nl. Koppel goed gedrag of klusjes aan extra zakgeld.",
+    title: "Beloningssysteem tip",
+    prompt: "Geef een praktische tip voor ouders over het opzetten van een beloningssysteem met zakgeld via kindgeld.nl. Koppel klusjes of goed gedrag aan extra zakgeld op een motiverende manier.",
+    imageSubtitle: "Beloningen met kindgeld.nl",
   },
 ];
 
 const PLATFORM_PROMPTS = {
   instagram: `
-Schrijf een Instagram caption (max 150 woorden):
-- Persoonlijk en direct aanspreken ("Jij als ouder...")
-- 3-5 emoji's verspreid door de tekst
-- Afsluitende call-to-action: "Link in bio 👆"
-- Eindig met 10-15 hashtags op nieuwe regel:
-  #zakgeld #kinderen #spaardoel #ouders #financiëleopvoeding
-  #kindgeldnl #geldlessen #opvoeden #spaargeld #kindgeld
-  #geldenkinderen #ouderschap #kindvriendelijk #sparendoejezo #budgetieren
-Schrijf ALLEEN de caption, niets anders.`,
+Schrijf een Instagram caption voor kindgeld.nl.
+
+REGELS:
+- Eerste zin stopt met scrollen: begin met een verrassing, vraag of stelling (bijv. "Dit wist je nog niet over zakgeld 👇" of "Wacht — doe jij dit al? 👀")
+- Maximaal 5 korte regels tekst
+- 1 emoji per regel, verspreid
+- Afsluiten met: "👉 kindgeld.nl"
+- Nieuwe regel, dan precies deze hashtags:
+  #zakgeld #kindgeldnl #financiëleopvoeding #spaardoel #ouders #kinderen #sparen #geldenkinderen #zakgeldapp #spaartips
+
+Schrijf ALLEEN de caption. Geen uitleg.`,
 
   facebook: `
-Schrijf een Facebook post (max 250 woorden):
-- Warme, persoonlijke toon als een vriend
-- Begin met een herkenbare situatie voor ouders
-- 1-2 emoji's, subtiel
-- Midden: concrete informatie of tip
-- Sluit af met vraag aan de lezer OF link naar kindgeld.nl
+Schrijf een Facebook post voor kindgeld.nl.
+
+REGELS:
+- Open met: "Als ouder ken je dit..." of vergelijkbare herkenbare situatie
+- Kort verhaal of situatie in 3-4 zinnen
+- Concrete tip of informatie in het midden
+- Sluit af met een vraag die reacties uitlokt (bijv. "Hoeveel zakgeld geef jij per week?")
+- Laatste zin: "👉 Ontdek meer op kindgeld.nl"
 - Geen hashtags
-Schrijf ALLEEN de post tekst, niets anders.`,
+- Max 200 woorden
+
+Schrijf ALLEEN de post. Geen uitleg.`,
 
   tiktok: `
-Schrijf een TikTok video script (30-60 seconden):
-- Eerste zin = sterke hook die stopt met scrollen
-- Spreek direct en energiek ("Wist je dat...")
-- Korte zinnen, maximaal spreektaal
-- Structuur: Hook → Probleem → Oplossing → CTA
-- CTA: "Volg ons voor meer tips! Link in bio."
-- Trending hashtags: #kindgeld #zakgeld #oudertips #financiëleopvoeding #tiktokouders #fintok
-Schrijf het script met duidelijke labels: [HOOK] [INHOUD] [CTA]`,
+Schrijf een TikTok caption + script hint voor kindgeld.nl.
+
+Caption (voor de post):
+- 1 krachtige openingszin als hook
+- 2-3 korte zinnen over het onderwerp
+- CTA: "Volg voor meer tips! 👆"
+- Hashtags: #kindgeld #zakgeld #oudertips #financiëleopvoeding #tiktokouders #fintok
+
+Script hint (voor de maker):
+[HOOK] Eerste zin die stopt met scrollen
+[INHOUD] 2-3 kernpunten, spreektaal, korte zinnen
+[CTA] Sluitende call-to-action
+
+Schrijf ALLEEN de caption + script hint.`,
 
   pinterest: `
-Schrijf een Pinterest pin beschrijving (max 200 woorden):
-- SEO-vriendelijk: gebruik zoekwoorden zoals "zakgeld tips", "kinderen leren sparen", "financiële opvoeding"
-- Beschrijvend en informatief
-- Noem kindgeld.nl als bron/app
-- Eindig met: "Ontdek meer op kindgeld.nl"
+Schrijf een Pinterest pin beschrijving voor kindgeld.nl.
+
+REGELS:
+- SEO-gericht: gebruik "zakgeld tips", "kinderen leren sparen", "financiële opvoeding", "spaardoel kinderen"
+- Informatief en beschrijvend (2-3 zinnen)
+- Noem kindgeld.nl expliciet als de oplossing
+- Sluit af met: "Ontdek meer tips op kindgeld.nl"
 - Geen emoji's
-- 3-5 hashtags: #zakgeld #kindgeld #financiëleopvoeding #spaartips #ouders
-Schrijf ALLEEN de beschrijving, niets anders.`,
+- Hashtags: #zakgeld #kindgeld #financiëleopvoeding #spaartips #ouders
+
+Schrijf ALLEEN de beschrijving.`,
 };
 
-// 5 posts per maand = 20 platform-posts (5 × 4 platforms) = gratis limiet vol
 function getTopicsForMonth() {
   const monthNumber = new Date().getMonth() + new Date().getFullYear() * 12;
-  return [
-    TOPICS[monthNumber % TOPICS.length],
-    TOPICS[(monthNumber + 1) % TOPICS.length],
-    TOPICS[(monthNumber + 2) % TOPICS.length],
-    TOPICS[(monthNumber + 3) % TOPICS.length],
-    TOPICS[(monthNumber + 4) % TOPICS.length],
-  ];
+  return Array.from({ length: 5 }, (_, i) => TOPICS[(monthNumber + i) % TOPICS.length]);
 }
 
 async function generatePlatformContent(topic, platform) {
-  const message = await client.messages.create({
+  const msg = await client.messages.create({
     model: "claude-opus-4-6",
-    max_tokens: 1024,
-    messages: [
-      {
-        role: "user",
-        content: `Je maakt sociale media content voor kindgeld.nl — een app voor digitaal zakgeld en financiële opvoeding van kinderen.
+    max_tokens: 800,
+    messages: [{
+      role: "user",
+      content: `Je schrijft sociale media content voor kindgeld.nl — een app voor digitaal zakgeld en financiële opvoeding.
 
 Onderwerp: ${topic.prompt}
 
 ${PLATFORM_PROMPTS[platform]}`,
-      },
-    ],
+    }],
   });
-  return message.content[0].text.trim();
+  return msg.content[0].text.trim();
 }
 
 async function generateImageTitle(topic) {
-  const message = await client.messages.create({
+  const msg = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 100,
-    messages: [
-      {
-        role: "user",
-        content: `Maak een korte, krachtige zin (max 8 woorden) voor op een sociale media afbeelding over dit onderwerp: "${topic.prompt}". Alleen de zin, niets anders.`,
-      },
-    ],
+    max_tokens: 80,
+    messages: [{
+      role: "user",
+      content: `Maak een krachtige zin van MAX 7 woorden voor op een sociale media afbeelding. Onderwerp: "${topic.prompt}". Schrijf ALLEEN de zin, geen aanhalingstekens.`,
+    }],
   });
-  return message.content[0].text.trim().replace(/["']/g, "");
+  return msg.content[0].text.trim().replace(/["'"""]/g, "");
 }
 
 async function generateMonthlyContent() {
   if (!fs.existsSync(POSTS_DIR)) fs.mkdirSync(POSTS_DIR, { recursive: true });
 
-  // 5 posts verspreid over de maand: wo1, vr1, ma2, wo2, vr3
   const topics = getTopicsForMonth();
-  const days = ["woensdag week 1", "vrijdag week 1", "maandag week 2", "woensdag week 2", "vrijdag week 3"];
-  const times = ["12:00", "17:00", "08:00", "12:00", "17:00"];
+  // Schema: wo wk1 07:30 | wo wk1 12:00 | vr wk1 19:00 | zo wk2 10:00 | wo wk2 12:00
+  const schedule = [
+    { day: "maandag week 1",  time: "07:30" },
+    { day: "woensdag week 1", time: "12:00" },
+    { day: "vrijdag week 1",  time: "19:00" },
+    { day: "zondag week 2",   time: "10:00" },
+    { day: "woensdag week 2", time: "12:00" },
+  ];
   const results = [];
 
-  console.log(`Genereren van 5 posts voor deze maand (= 20 Ayrshare credits)...\n`);
+  console.log(`Genereren van 5 posts (= 20 Ayrshare credits — gratis limiet vol)...\n`);
 
   for (let i = 0; i < topics.length; i++) {
     const topic = topics[i];
-    const day = days[i];
-    const time = times[i];
+    const { day, time } = schedule[i];
 
-    console.log(`[${i + 1}/${topics.length}] ${day} ${time} — ${topic.title}`);
+    console.log(`[${i + 1}/5] ${day} ${time} — ${topic.title}`);
 
-    // Genereer alle platform teksten parallel
     const [instagram, facebook, tiktok, pinterest, imageTitle] = await Promise.all([
       generatePlatformContent(topic, "instagram"),
       generatePlatformContent(topic, "facebook"),
@@ -157,19 +170,17 @@ async function generateMonthlyContent() {
       generateImageTitle(topic),
     ]);
 
-    // Genereer afbeeldingen
-    const slug = `${day}-${topic.type}-${Date.now()}`;
-    console.log(`  Afbeeldingen genereren...`);
+    const slug = `${day.replace(/ /g, "-")}-${topic.type}-${Date.now()}`;
+    console.log(`  Afbeeldingen genereren voor: "${imageTitle}"`);
     const imagePaths = await generateImagesForPost({
       slug,
       postType: topic.type,
       title: imageTitle,
-      subtitle: "kindgeld.nl",
+      subtitle: topic.imageSubtitle,
     });
 
     results.push({
-      day,
-      time,
+      day, time,
       type: topic.type,
       title: topic.title,
       slug,
@@ -181,26 +192,20 @@ async function generateMonthlyContent() {
     console.log(`  ✓ Klaar\n`);
   }
 
-  // Opslaan als JSON
   const now = new Date();
   const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const outPath = path.join(POSTS_DIR, `maand-${monthStr}.json`);
   fs.writeFileSync(outPath, JSON.stringify(results, null, 2), "utf-8");
-  console.log(`Posts opgeslagen: ${outPath}`);
-  console.log(`\n✓ 5 posts × 4 platforms = 20 Ayrshare credits (gratis limiet vol)`);
-
+  console.log(`✓ Opgeslagen: ${outPath}`);
+  console.log(`✓ 5 posts × 4 platforms = 20 Ayrshare credits`);
   return outPath;
 }
 
-// Standalone uitvoer
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error("Fout: ANTHROPIC_API_KEY is niet ingesteld.");
-    process.exit(1);
-  }
+  if (!process.env.ANTHROPIC_API_KEY) { console.error("ANTHROPIC_API_KEY ontbreekt"); process.exit(1); }
   generateMonthlyContent()
-    .then((file) => console.log(`\nKlaar! Output: ${file}`))
-    .catch((err) => { console.error(err.message); process.exit(1); });
+    .then(f => console.log(`\nKlaar: ${f}`))
+    .catch(e => { console.error(e.message); process.exit(1); });
 }
 
 export { generateMonthlyContent };
