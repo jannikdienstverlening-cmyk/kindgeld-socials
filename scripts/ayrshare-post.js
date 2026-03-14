@@ -2,7 +2,6 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import fetch from "node-fetch";
-import FormData from "form-data";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
@@ -10,6 +9,13 @@ const POSTS_DIR = path.join(ROOT, "posts");
 
 const AYRSHARE_API = "https://app.ayrshare.com/api";
 const PLATFORMS = ["instagram", "facebook", "tiktok", "pinterest"];
+
+// Gratis plan: geen media upload → gebruik raw GitHub URLs (repo is publiek)
+const GITHUB_RAW = "https://raw.githubusercontent.com/jannikdienstverlening-cmyk/kindgeld-socials/main/images/generated";
+
+function getGithubImageUrl(slug, platform) {
+  return `${GITHUB_RAW}/${slug}-${platform}.png`;
+}
 
 // 5 posts verspreid over de maand = 20 Ayrshare credits (gratis limiet)
 // Elke post gaat naar 4 platforms: 5 × 4 = 20
@@ -41,28 +47,8 @@ function getScheduleDate(weekOffset, dayOfWeek, hour, minute) {
 async function uploadMedia(imagePath) {
   if (!imagePath || !fs.existsSync(imagePath)) return null;
 
-  const form = new FormData();
-  form.append("file", fs.createReadStream(imagePath), {
-    filename: path.basename(imagePath),
-    contentType: "image/png",
-  });
-
-  const res = await fetch(`${AYRSHARE_API}/media/upload`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.AYRSHARE_API_KEY}`,
-      ...form.getHeaders(),
-    },
-    body: form,
-  });
-
-  if (!res.ok) {
-    console.warn(`  ⚠ Media upload mislukt (${res.status}): ${await res.text()}`);
-    return null;
-  }
-
-  const data = await res.json();
-  return data.url ?? null;
+  // Gratis plan ondersteunt geen media upload — gebruik GitHub raw URL
+  return getGithubImageUrl(path.basename(imagePath, ".png").replace(/-instagram$|-facebook$|-tiktok$|-pinterest$/, ""), "instagram");
 }
 
 async function schedulePost({ text, platforms, scheduleDate, mediaUrl }) {
@@ -135,24 +121,12 @@ async function scheduleAllPosts() {
 
     console.log(`📅 ${dateLabel} — ${post.title}`);
 
-    // Upload Instagram afbeelding (werkt ook voor Facebook/Pinterest)
-    const imagePath = post.imagePaths?.instagram ?? null;
-    console.log(`  Afbeelding uploaden...`);
-    const mediaUrl = await uploadMedia(imagePath);
-    if (mediaUrl) console.log(`  ✓ Afbeelding geupload`);
-
-    // Per platform aparte tekst, maar één API call per platform
-    // (Ayrshare accepteert ook één call voor meerdere, maar tekst verschilt per platform)
+    // Gebruik GitHub raw URLs per platform (gratis plan workaround)
     for (const platform of PLATFORMS) {
       const text = post.platforms[platform];
       if (!text) continue;
 
-      // TikTok gebruikt eigen thumbnail formaat
-      const platformMediaUrl = platform === "tiktok"
-        ? (post.imagePaths?.tiktok ? await uploadMedia(post.imagePaths.tiktok) : mediaUrl)
-        : platform === "pinterest"
-        ? (post.imagePaths?.pinterest ? await uploadMedia(post.imagePaths.pinterest) : mediaUrl)
-        : mediaUrl;
+      const platformMediaUrl = getGithubImageUrl(post.slug, platform);
 
       try {
         const postId = await schedulePost({
