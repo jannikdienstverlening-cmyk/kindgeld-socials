@@ -1,0 +1,14 @@
+{
+  "name": "kindgeld-socials",
+  "version": "1.0.0",
+  "description": "Geautomatiseerde sociale media content voor kindgeld.nl",
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/generate-posts.js",
+    "schedule": "node scripts/schedule-posts.js",
+    "run-all": "node scripts/generate-posts.js && node scripts/schedule-posts.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0"
+  }
+}

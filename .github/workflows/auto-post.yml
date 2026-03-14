@@ -1,0 +1,44 @@
+name: Automatische Sociale Media Posts
+
+on:
+  schedule:
+    - cron: "0 20 * * 0"  # Elke zondag om 20:00 UTC
+  workflow_dispatch:       # Handmatig triggeren mogelijk via GitHub UI
+
+jobs:
+  generate-and-schedule:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Node.js instellen
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Dependencies installeren
+        run: npm ci
+
+      - name: Posts genereren
+        run: node scripts/generate-posts.js
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Posts inplannen via Buffer
+        run: node scripts/schedule-posts.js
+        env:
+          BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+          BUFFER_PROFILE_IDS_INSTAGRAM: ${{ secrets.BUFFER_PROFILE_IDS_INSTAGRAM }}
+          BUFFER_PROFILE_IDS_FACEBOOK: ${{ secrets.BUFFER_PROFILE_IDS_FACEBOOK }}
+          BUFFER_PROFILE_IDS_LINKEDIN: ${{ secrets.BUFFER_PROFILE_IDS_LINKEDIN }}
+
+      - name: Gegenereerde posts committen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add posts/
+          git diff --staged --quiet || git commit -m "chore: automatisch gegenereerde posts $(date +%Y-%m-%d)"
+          git push
