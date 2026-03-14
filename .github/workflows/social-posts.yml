@@ -34,16 +34,12 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
-      - name: Posts inplannen via Buffer
-        run: node scripts/buffer-post.js
+      - name: Posts inplannen via Ayrshare
+        run: node scripts/ayrshare-post.js
         env:
-          BUFFER_ACCESS_TOKEN: ${{ secrets.BUFFER_ACCESS_TOKEN }}
-          BUFFER_INSTAGRAM_ID: ${{ secrets.BUFFER_INSTAGRAM_ID }}
-          BUFFER_FACEBOOK_ID: ${{ secrets.BUFFER_FACEBOOK_ID }}
-          BUFFER_TIKTOK_ID: ${{ secrets.BUFFER_TIKTOK_ID }}
-          BUFFER_PINTEREST_ID: ${{ secrets.BUFFER_PINTEREST_ID }}
+          AYRSHARE_API_KEY: ${{ secrets.AYRSHARE_API_KEY }}
 
-      - name: Gegenereerde posts en afbeeldingen committen
+      - name: Gegenereerde posts committen
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

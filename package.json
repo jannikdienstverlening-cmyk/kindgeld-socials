@@ -6,8 +6,8 @@
   "scripts": {
     "generate": "node scripts/generate-content.js",
     "images": "node scripts/generate-images.js",
-    "schedule": "node scripts/buffer-post.js",
-    "run-all": "node scripts/generate-content.js && node scripts/buffer-post.js"
+    "schedule": "node scripts/ayrshare-post.js",
+    "run-all": "node scripts/generate-content.js && node scripts/ayrshare-post.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
@@ -15,5 +15,8 @@
     "dotenv": "^17.3.1",
     "node-fetch": "^3.3.2",
     "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "tweetsodium": "^0.0.4"
   }
 }
